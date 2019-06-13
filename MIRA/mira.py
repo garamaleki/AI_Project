@@ -100,12 +100,13 @@ class Perceptron:
         self.w = [[0 for i in range(features)] for j in range(len(labels))]
         self.biases = [0 for i in range(len(labels))]
         self.learning_rate = 0
+        self.c = 0.001
 
     def train(self, input, label):
         predicted_label = self.predict(input)
         if predicted_label == label:
             return
-        self.learning_rate = (np.dot((np.subtract(self.w[predicted_label], self.w[label])), input) + 1) / (2 * np.dot(input, input))
+        self.learning_rate = max((np.dot((np.subtract(self.w[predicted_label], self.w[label])), input) + 1) / (2 * np.dot(input, input)), self.c)
         self.w[predicted_label] = np.subtract(self.w[predicted_label], input * self.learning_rate)
         self.biases[predicted_label] -= 1 * self.learning_rate
         self.w[label] = np.add(self.w[label], input * self.learning_rate)
@@ -122,7 +123,7 @@ X_test, y_test = mnist_reader.load_mnist('../data/fashion', kind='t10k')
 
 features = 28 * 28 + 5 + 28 + 28
 perceptron = Perceptron([i for i in range(10)], features)
-epochs = 35
+epochs = 100
 
 for j in range(epochs):
     print(j)
