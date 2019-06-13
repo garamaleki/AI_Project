@@ -8,36 +8,41 @@ train_h = []
 train_v = []
 test_h = []
 test_v = []
-
-with open('extra_train_loop_3.txt', 'r') as file:
+with open('../extra/extra_train_loop_3.txt', 'r') as file:
     for r in file:
         x = r.rstrip()
         if len(x) > 0:
             train_loop.append(int(x))
 
-with open('extra_train_h.txt', 'r') as file:
+with open('../extra/extra_train_loop_3.txt', 'r') as file:
+    for r in file:
+        x = r.rstrip()
+        if len(x) > 0:
+            train_loop.append(int(x))
+
+with open('../extra/extra_train_h.txt', 'r') as file:
     for r in file:
         x = r.rstrip()
         if len(x) > 0:
             train_h.append(np.array(list(map(int, x.split(',')))))
-with open('extra_train_v.txt', 'r') as file:
+with open('../extra/extra_train_v.txt', 'r') as file:
     for r in file:
         x = r.rstrip()
         if len(x) > 0:
             train_v.append(np.array(list(map(int, x.split(',')))))
 
-with open('extra_test_loop_3.txt', 'r') as file:
+with open('../extra/extra_test_loop_3.txt', 'r') as file:
     for r in file:
         x = r.rstrip()
         if len(x) > 0:
             test_loop.append(int(x))
 
-with open('extra_test_h.txt', 'r') as file:
+with open('../extra/extra_test_h.txt', 'r') as file:
     for r in file:
         x = r.rstrip()
         if len(x) > 0:
             test_h.append(np.array(list(map(int, x.split(',')))))
-with open('extra_test_v.txt', 'r') as file:
+with open('../extra/extra_test_v.txt', 'r') as file:
     for r in file:
         x = r.rstrip()
         if len(x) > 0:
@@ -102,12 +107,13 @@ class Perceptron:
         self.biases[label] += 1
 
     def predict(self, input):
-        index = np.argmax([(np.dot(self.w[i], input) + self.biases[i]) for i in range(len(self.labels))])
+        index = np.argmax(
+            [(np.dot(self.w[i], input) + self.biases[i]) for i in range(len(self.labels))])
         return self.labels[index]
 
 
-X_train, y_train = mnist_reader.load_mnist('data/fashion', kind='train')
-X_test, y_test = mnist_reader.load_mnist('data/fashion', kind='t10k')
+X_train, y_train = mnist_reader.load_mnist('../data/fashion', kind='train')
+X_test, y_test = mnist_reader.load_mnist('../data/fashion', kind='t10k')
 
 features = 28 * 28 + 5 + 28 + 28
 perceptron = Perceptron([i for i in range(10)], features)
