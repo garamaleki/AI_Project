@@ -100,11 +100,12 @@ class Perceptron:
     def train(self, input, label):
         predicted_label = self.predict(input)
         if predicted_label == label:
-            return
+            return 1
         self.w[predicted_label] = np.subtract(self.w[predicted_label], input)
         self.biases[predicted_label] -= 1
         self.w[label] = np.add(self.w[label], input)
         self.biases[label] += 1
+        return 0
 
     def predict(self, input):
         index = np.argmax(
@@ -117,13 +118,14 @@ X_test, y_test = mnist_reader.load_mnist('../data/fashion', kind='t10k')
 
 features = 28 * 28 + 5 + 28 + 28
 perceptron = Perceptron([i for i in range(10)], features)
-epochs = 15
+epochs = 100
 
 for j in range(epochs):
-    print(j)
+    correct = 0
     for i in range(len(X_train)):
         f = feature_extract(X_train[i] / 255, i, train=True)
-        perceptron.train(f, y_train[i])
+        correct += perceptron.train(f, y_train[i])
+    print(j, correct / len(X_train))
 
 x = 0
 for i in range(len(X_test)):
