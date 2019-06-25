@@ -93,7 +93,7 @@ def feature_extract(img_array, i, train=True):
 
 class Perceptron:
 
-    def __init__(self, labels, kernel, sample_size, X):
+    def __init__(self, labels, kernel, sample_size, X, T):
         self.X = X
         self.sample_size = sample_size
         self.kernel = kernel
@@ -101,11 +101,22 @@ class Perceptron:
         self.a = [[0 for i in range(sample_size)] for j in range(len(labels))]
         self.biases = [0 for i in range(len(labels))]
         self.K = np.zeros((sample_size, sample_size))
+        self.T = np.zeros((sample_size, sample_size))
         for i in range(sample_size):
             for j in range(sample_size):
                 self.K[i, j] = self.kernel(feature_extract(self.X[i] / 255, i, train=True),
                                            feature_extract(self.X[j] / 255, j, train=True))
-        print("done")
+            if i % 10 == 0:
+                print("kernel calc train: ", i)
+        for i in range(sample_size):
+            for j in range(sample_size):
+                self.T[i, j] = self.kernel(feature_extract(T[j] / 255, j, train=False),
+                                           feature_extract(self.X[i] / 255, i, train=True))
+            if i % 10 == 0:
+                print("kernel calc test: ", i)
+
+    def fit(self, size):
+        pass
 
     def train(self, input, label, sample_index):
         predicted_label = self.predict(input, sample_index)
@@ -125,6 +136,15 @@ class Perceptron:
         index = np.argmax(scores)
         return self.labels[index]
 
+    def predict_test(self, input, test_index):
+        print(test_index)
+        scores = []
+        for i in range(len(self.labels)):
+            score = np.sum(self.T[:, test_index] * self.a[i])
+            scores.append(score + self.biases[i])
+        index = np.argmax(scores)
+        return self.labels[index]
+
 
 def linear_kernel(x1, x2):
     return np.dot(x1, x2)
@@ -134,7 +154,7 @@ def polynomial_kernel(x, y, p=2):
     return (1 + np.dot(x, y)) ** p
 
 
-def gaussian_kernel(x, y, sigma=5.0):
+def gaussian_kernel(x, y, sigma=2.0):
     return np.exp(-linalg.norm(x - y) ** 2 / (2 * (sigma ** 2)))
 
 
@@ -142,21 +162,22 @@ X_train, y_train = mnist_reader.load_mnist('../data/fashion', kind='train')
 X_test, y_test = mnist_reader.load_mnist('../data/fashion', kind='t10k')
 
 features = 28 * 28 + 5 + 28 + 28
-sample_size = 1000
-perceptron = Perceptron([i for i in range(10)], gaussian_kernel, sample_size, X_train)
-epochs = 2
+sample_size = 8000
+perceptron = Perceptron([i for i in range(10)], gaussian_kernel, sample_size, X_train, X_test)
+epochs = 15
 
 for j in range(epochs):
     correct = 0
     for i in range(sample_size):
         f = feature_extract(X_train[i] / 255, i, train=True)
         correct += perceptron.train(f, y_train[i], i)
+        if i % 10 == 0:
+            print("train: ", i)
     print(j, correct / sample_size)
-#
-# x = 0
-# for i in range(len(X_test)):
-#     f = feature_extract(X_test[i] / 255, i, train=False)
-#     if perceptron.predict(f, i) == y_test[i]:
-#         x += 1
-#
-# print(x / len(X_test))
+
+correct = 0
+for i in range(sample_size):
+    f = feature_extract(X_test[i] / 255, i, train=False)
+    if perceptron.predict_test(f, i) == y_test[i]:
+        correct += 1
+print("sdf", correct / sample_size)

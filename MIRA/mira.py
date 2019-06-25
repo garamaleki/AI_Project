@@ -10,12 +10,6 @@ train_h = []
 train_v = []
 test_h = []
 test_v = []
-print(os.path.join('/salam'))
-with open('../extra/extra_train_loop_3.txt', 'r') as file:
-    for r in file:
-        x = r.rstrip()
-        if len(x) > 0:
-            train_loop.append(int(x))
 
 with open('../extra/extra_train_loop_3.txt', 'r') as file:
     for r in file:
@@ -76,37 +70,38 @@ def num_of_loops(array_index, train=True):
 def feature_extract(img_array, i, train=True):
     h = pixels_per_height(array_index=i, train=train)
     v = pixels_per_width(array_index=i, train=train)
-    img_array = np.concatenate((h / 12, img_array))
-    img_array = np.concatenate((v / 12, img_array))
+    img_array = np.concatenate((h * 20, img_array))
+    img_array = np.concatenate((v * 20, img_array))
     loops = num_of_loops(array_index=i, train=train)
     if loops == 0:
         return np.concatenate(([0, 0, 0, 0, 0], img_array))
     elif loops == 1:
-        return np.concatenate(([1, 0, 0, 0, 0], img_array))
+        return np.concatenate(([500, 0, 0, 0, 0], img_array))
     elif loops == 2:
-        return np.concatenate(([0, 1, 0, 0, 0], img_array))
+        return np.concatenate(([0, 500, 0, 0, 0], img_array))
     elif loops == 3:
-        return np.concatenate(([0, 0, 1, 0, 0], img_array))
+        return np.concatenate(([0, 0, 500, 0, 0], img_array))
     elif loops == 4:
-        return np.concatenate(([0, 0, 0, 1, 0], img_array))
+        return np.concatenate(([0, 0, 0, 500, 0], img_array))
     else:
-        return np.concatenate(([0, 0, 0, 0, 1], img_array))
+        return np.concatenate(([0, 0, 0, 0, 500], img_array))
 
 
-class Perceptron:
+class MIRA:
 
     def __init__(self, labels, features):
         self.labels = labels
         self.w = [[0 for i in range(features)] for j in range(len(labels))]
         self.biases = [0 for i in range(len(labels))]
         self.learning_rate = 0
-        self.c = 0.001
+        self.c = 0.1
 
     def train(self, input, label):
         predicted_label = self.predict(input)
         if predicted_label == label:
             return 1
-        self.learning_rate = max((np.dot((np.subtract(self.w[predicted_label], self.w[label])), input) + 1) / (2 * np.dot(input, input)), self.c)
+        self.learning_rate = min((np.dot((np.subtract(self.w[predicted_label], self.w[label])), input) + 1) / (2 * np.dot(input, input)), self.c)
+        # self.learning_rate = 0.01
         self.w[predicted_label] = np.subtract(self.w[predicted_label], input * self.learning_rate)
         self.biases[predicted_label] -= 1 * self.learning_rate
         self.w[label] = np.add(self.w[label], input * self.learning_rate)
@@ -123,20 +118,20 @@ X_train, y_train = mnist_reader.load_mnist('../data/fashion', kind='train')
 X_test, y_test = mnist_reader.load_mnist('../data/fashion', kind='t10k')
 
 features = 28 * 28 + 5 + 28 + 28
-perceptron = Perceptron([i for i in range(10)], features)
-epochs = 25
+perceptron = MIRA([i for i in range(10)], features)
+epochs = 30
 
 for j in range(epochs):
     correct = 0
     for i in range(len(X_train)):
-        f = feature_extract(X_train[i] / 255, i, train=True)
+        f = feature_extract(X_train[i], i, train=True)
         correct += perceptron.train(f, y_train[i])
     print(j, correct / len(X_train))
 
 x = 0
 for i in range(len(X_test)):
-    f = feature_extract(X_test[i] / 255, i, train=False)
+    f = feature_extract(X_test[i], i, train=False)
     if perceptron.predict(f) == y_test[i]:
         x += 1
 
-print(x / len(X_test))
+print('\n', x / len(X_test))

@@ -73,21 +73,21 @@ def num_of_loops(array_index, train=True):
 def feature_extract(img_array, i, train=True):
     h = pixels_per_height(array_index=i, train=train)
     v = pixels_per_width(array_index=i, train=train)
-    img_array = np.concatenate((h / 12, img_array))
-    img_array = np.concatenate((v / 12, img_array))
+    img_array = np.concatenate((h * 25, img_array))
+    img_array = np.concatenate((v * 25, img_array))
     loops = num_of_loops(array_index=i, train=train)
     if loops == 0:
         return np.concatenate(([0, 0, 0, 0, 0], img_array))
     elif loops == 1:
-        return np.concatenate(([1, 0, 0, 0, 0], img_array))
+        return np.concatenate(([500, 0, 0, 0, 0], img_array))
     elif loops == 2:
-        return np.concatenate(([0, 1, 0, 0, 0], img_array))
+        return np.concatenate(([0, 500, 0, 0, 0], img_array))
     elif loops == 3:
-        return np.concatenate(([0, 0, 1, 0, 0], img_array))
+        return np.concatenate(([0, 0, 500, 0, 0], img_array))
     elif loops == 4:
-        return np.concatenate(([0, 0, 0, 1, 0], img_array))
+        return np.concatenate(([0, 0, 0, 500, 0], img_array))
     else:
-        return np.concatenate(([0, 0, 0, 0, 1], img_array))
+        return np.concatenate(([0, 0, 0, 0, 500], img_array))
 
 
 class Perceptron:
@@ -118,18 +118,18 @@ X_test, y_test = mnist_reader.load_mnist('../data/fashion', kind='t10k')
 
 features = 28 * 28 + 5 + 28 + 28
 perceptron = Perceptron([i for i in range(10)], features)
-epochs = 100
+epochs = 30
 
 for j in range(epochs):
     correct = 0
     for i in range(len(X_train)):
-        f = feature_extract(X_train[i] / 255, i, train=True)
+        f = feature_extract(X_train[i], i, train=True)
         correct += perceptron.train(f, y_train[i])
     print(j, correct / len(X_train))
 
 x = 0
 for i in range(len(X_test)):
-    f = feature_extract(X_test[i] / 255, i, train=False)
+    f = feature_extract(X_test[i], i, train=False)
     if perceptron.predict(f) == y_test[i]:
         x += 1
 
