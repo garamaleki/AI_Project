@@ -93,7 +93,7 @@ def feature_extract(img_array, i, train=True):
 
 class Perceptron:
 
-    def __init__(self, labels, kernel, sample_size, X, T):
+    def __init__(self, labels, kernel, sample_size, test_size, X, T):
         self.X = X
         self.sample_size = sample_size
         self.kernel = kernel
@@ -101,7 +101,7 @@ class Perceptron:
         self.a = [[0 for i in range(sample_size)] for j in range(len(labels))]
         self.biases = [0 for i in range(len(labels))]
         self.K = np.zeros((sample_size, sample_size))
-        self.T = np.zeros((sample_size, sample_size))
+        self.T = np.zeros((sample_size, test_size))
         for i in range(sample_size):
             for j in range(sample_size):
                 self.K[i, j] = self.kernel(feature_extract(self.X[i] / 255, i, train=True),
@@ -109,7 +109,7 @@ class Perceptron:
             if i % 10 == 0:
                 print("kernel calc train: ", i)
         for i in range(sample_size):
-            for j in range(sample_size):
+            for j in range(test_size):
                 self.T[i, j] = self.kernel(feature_extract(T[j] / 255, j, train=False),
                                            feature_extract(self.X[i] / 255, i, train=True))
             if i % 10 == 0:
@@ -162,9 +162,10 @@ X_train, y_train = mnist_reader.load_mnist('../data/fashion', kind='train')
 X_test, y_test = mnist_reader.load_mnist('../data/fashion', kind='t10k')
 
 features = 28 * 28 + 5 + 28 + 28
-sample_size = 8000
-perceptron = Perceptron([i for i in range(10)], gaussian_kernel, sample_size, X_train, X_test)
-epochs = 15
+sample_size = 1000
+test_size = 200
+perceptron = Perceptron([i for i in range(10)], gaussian_kernel, sample_size, test_size, X_train, X_test)
+epochs = 30
 
 for j in range(epochs):
     correct = 0
@@ -176,8 +177,8 @@ for j in range(epochs):
     print(j, correct / sample_size)
 
 correct = 0
-for i in range(sample_size):
+for i in range(test_size):
     f = feature_extract(X_test[i] / 255, i, train=False)
     if perceptron.predict_test(f, i) == y_test[i]:
         correct += 1
-print("sdf", correct / sample_size)
+print("sdf", correct / test_size)
